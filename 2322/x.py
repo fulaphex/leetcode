@@ -1,251 +1,96 @@
-from functools import reduce
 import itertools
-import math
-from typing import Optional
 import sys
+
+from typing import Optional
+
 sys.setrecursionlimit(10_000)
 
 
-def print(*args):
-    return
-def pprint(*args):
-    return
-
 class Node:
     val: int
-    cost: None | int
-    _xor_cost: None | int
+    cost: int
+    xor: None | int
     children: None | list["Node"]
     parent: Optional["Node"]
     descendants: set[int]
 
-    def __init__(self, val):
+    def __init__(self, val: int, cost: int) -> None:
         self.val = val
+        self.cost = cost
+
         self.children = []
-        self.cost = None
-        self._xor_cost = None
         self.parent = None
-        self._ascendants_binary = None
-        # self.descendants = set()
-        # self._ascendants: None | list["Node"] = None
+        self.xor = None
+        self.descendants = set()
 
-    # def __repr__(self):
-    #     return f"Node: {self.val}, parent: {self.parent.val if self.parent else None}"
-
-    # def get_ascendants(self):
-    #     if self.parent is None:
-    #         return set()
-    #     if self._ascendants:
-    #         return self._ascendants
-    #     ascendants = set()
-
-    #     node = self
-    #     while node.parent:
-    #         ascendants.add(node)
-    #         node = node.parent
-    #     self._ascendants = ascendants
-    #     return self._ascendants
-
-    # def update_descendants(self):
-    #     print(f"updating descendants for {self.val}")
-    #     for c in self.children:
-    #         c.update_descendants()
-    #         self.descendants.update(c.descendants)
-    #     self.descendants.update(self.children)
-    #     print(f"descendants for {self.val} are {[d.val for d in self.descendants]}")
-
-    def get_xor(self):
-        assert self.cost is not None
-
-        if self._xor_cost is not None:
-            # print(f"xor cost for {self.val} is {self._xor_cost}")
-            return self._xor_cost
-
-        # print(f"getting xor cost for {self.val}")
-        if len(self.children) == 0:
-            self._xor_cost = self.cost
-        else:
-            self._xor_cost = reduce(lambda x, y: x ^ y, [self.cost] + [child.get_xor() for child in self.children])
-            # self._xor_cost = self.cost + sum(
-            #     child.get_xor() for child in self.children
-            # )
-
-        # print(f"xor cost for {self.val} is {self._xor_cost}")
-        return self._xor_cost
-
-    def set_depth(self):
-        if self.parent is None:
-            self.depth = 0
-        else:
-            self.depth = self.parent.depth + 1
+    def finalise(self, depth=0) -> None:
+        # compute xors
+        # compute depths
+        # pre-compute data for LCA
+        self.depth = depth
+        xor_cost = self.cost
+        descendants = set()
 
         for c in self.children:
-            c.set_depth()
-    
-    def set_ascendants(self, path=None):
-        if self.parent is None:
-            assert path is None
-        if path is None:
-            path = []
-            assert self.parent is None
-        
-        ascendants_binary: list["Node"] = []
-        x = 1
-        print(f"path = {[x.val for x in path]}")
-        while x <= len(path):
-            print(f"x: {x}, el = {path[x*-1].val}; idx = {x*-1}")
-            ascendants_binary.append(path[x*-1])
-            x *= 2
-        print(f"setting ascendants for {self.val} to {[x.val for x in ascendants_binary]}, {path = }")
-        self._ascendants_binary = ascendants_binary
+            if self.parent == c:
+                continue
 
-        path.append(self)
-        for c in self.children:
-            c.set_ascendants(path=path)
-        path.pop()
+            c.parent = self
+            c.finalise(depth=depth + 1)
+            xor_cost ^= c.xor
 
-    def get_ascendant(self, levels):
-        # print(f"getting ascendant of {self.val} by {levels} levels")
-        if levels == 0:
-            return self
-        idx = int(math.log2(levels))
-        asc = self._ascendants_binary[idx]
-        new_levels = levels - 2**idx
-        return asc.get_ascendant(new_levels)
+            descendants.add(c)
+            descendants.update(c.descendants)
 
+        self.children = [c for c in self.children if c != self.parent]
 
-def set_parents(node: Node, visited: set | None = None):
-    if visited is None:
-        visited = set()
-    visited.add(node.val)
-
-    # print(f"setting parent for {node.val}")
-    # pprint([n.val for n in node.children])
-    # pprint(visited)
-
-    for child in node.children:
-        if child.val in visited:
-            continue
-
-        child.parent = node
-        set_parents(child, visited=visited)
-
-    # print(f"node: {node.val}")
-    # pprint([n.val for n in node.children])
-    node.children = [child for child in node.children if child != node.parent]
-    # pprint([n.val for n in node.children])
-    # print()
+        self.xor = xor_cost
+        self.descendants = descendants
 
 
 class Solution:
     def minimumScore(self, nums: list[int], edges: list[list[int]]) -> int:
         nodes: dict[int, Node] = {}
+
         for edge in edges:
             for v in edge:
                 if v not in nodes:
-                    nodes[v] = Node(v)
-
-        # pprint(nodes)
+                    nodes[v] = Node(v, nums[v])
 
         for x, y in edges:
             nodes[x].children.append(nodes[y])
             nodes[y].children.append(nodes[x])
 
         root = nodes[0]
+        root.finalise()
 
-        set_parents(root)
-        # pprint(nodes)
-        for idx, cost in enumerate(nums):
-            nodes[idx].cost = cost
-        # for (x, y), cost in zip(edges, nums):
-        #     nx, ny = nodes[x], nodes[y]
-        #     # print(nx, ny)
-        #     if nx.parent == ny:
-        #         nx.cost = cost
-        #     elif ny.parent == nx:
-        #         ny.cost = cost
-        #     else:
-        #         assert False, (nx, ny)
-        # root.cost = 0
+        res = 100_000_000
 
-        # root.update_descendants()
-        root.get_xor()
-        root.set_depth()
-        root.set_ascendants()
-
-        # assert False
-        # pprint(nodes.keys())
-        # breakpoint()
-        res = 1e20
         for slice1, slice2 in itertools.permutations(list(range(1, len(nums))), 2):
-            # print(slice1, slice2)
             slice_node1 = nodes[slice1]
             slice_node2 = nodes[slice2]
+
             d1, d2 = slice_node1.depth, slice_node2.depth
-            if d1 > d2: continue
-            
-            des_depth = min(d1,d2)
-            # a1, a2 = slice_node1, slice_node2
+            if d1 > d2:
+                continue
 
-            # while a1.depth != des_depth:
-            #     a1 = a1.parent
-            # print(f"{d1 = }, {des_depth = }")
-            # a1p = slice_node1.get_ascendant(d1 - des_depth)
+            root_xor = root.xor
+            slice1_xor = slice_node1.xor
+            slice2_xor = slice_node2.xor
 
-            # assert a1 == a1p, (slice_node1.val, slice_node2.val, a1.val, a1p.val)
-
-            # while a2.depth != des_depth:
-            #     a2 = a2.parent
-            
-            # print(f"{d2 = }, {des_depth = }")
-            # a2p = slice_node2.get_ascendant(d2 - des_depth)
-            # assert a2 == a2p, (slice_node1.val, slice_node2.val, a2.val, a2p.val)
-            # # continue
-            a1 = slice_node1.get_ascendant(d1 - des_depth)
-            a2 = slice_node2.get_ascendant(d2 - des_depth)
-            
-            # ascendants1 = slice_node1.get_ascendants()
-            # ascendants2 = slice_node2.get_ascendants()
-            # shared = ascendants1 & ascendants2
-            # if shared == ascendants2:
-            #     # # slice1 is a descendant of slice2, ignoring
-            #     # print("not considering this")
-            #     # pprint((ascendants1, ascendants2, shared))
-            #     continue
-            if a1 == a2:
-            # elif shared == ascendants1:
-                # slice2 is a descendant of slice1
-                # print("slice2 is a descendant of slice1")
-                # pprint((ascendants1, ascendants2, shared))
-                root_xor = root.get_xor()
-                slice1_xor = slice_node1.get_xor()
-                slice2_xor = slice_node2.get_xor()
-
+            v3 = slice2_xor
+            if slice_node2 in slice_node1.descendants:
                 v1 = root_xor ^ slice1_xor
                 v2 = slice1_xor ^ slice2_xor
-                v3 = slice2_xor
-                # print(f"{v1 = }; {v2 = }; {v3 = }")
-
-                cur_res = max(v1, v2, v3) - min(v1, v2, v3)
-                res = min(res, cur_res)
+                # v3 = slice2_xor
 
             else:
-                # print("slice1 and slice2 are in different subtrees")
-                # pprint((ascendants1, ascendants2, shared))
-
-                root_xor = root.get_xor()
-                slice1_xor = slice_node1.get_xor()
-                slice2_xor = slice_node2.get_xor()
-
                 v1 = root_xor ^ slice1_xor ^ slice2_xor
                 v2 = slice1_xor
-                v3 = slice2_xor
-                # print(f"{v1 = }; {v2 = }; {v3 = }")
+                # v3 = slice2_xor
 
-                cur_res = max(v1, v2, v3) - min(v1, v2, v3)
-                res = min(res, cur_res)
-
-            # print()
+            cur_res = max(v1, v2, v3) - min(v1, v2, v3)
+            res = min(res, cur_res)
 
         return res
 
