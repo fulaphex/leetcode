@@ -17,11 +17,10 @@ impl Solution {
 
     pub fn count_max_or_subsets(nums: Vec<i32>) -> i32 {
         println!("{:?}", nums);
-        let target: i32 = nums.iter().map(|&x| x).reduce(|x, y| x | y).unwrap();
+        let target: i32 = nums.iter().fold(0,|acc, &el| acc | el);
         println!("target: {}", target);
 
-        let res = Self::_inner(&nums, target, 0);
-        return res;
+        return Self::_inner(&nums, target, 0);
     }
 }
 
