@@ -19,23 +19,18 @@ impl Solution {
         let keys = Vec::from_iter(nums.keys().cloned());
         for k in keys {
             let val = *nums.get(&k).unwrap();
+            acc.push(k);
+
             if val == 1 {
-                acc.push(k);
                 nums.remove(&k);
-
-                res += Self::perms(nums, acc);
-
-                acc.pop();
-                nums.insert(k, 1);
             } else {
-                acc.push(k);
                 nums.insert(k, val - 1);
-
-                res += Self::perms(nums, acc);
-
-                acc.pop();
-                nums.insert(k, val);
             }
+
+            res += Self::perms(nums, acc);
+
+            acc.pop();
+            nums.insert(k, val);
         }
         return res;
     }
