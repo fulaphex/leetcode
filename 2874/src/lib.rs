@@ -1,20 +1,10 @@
 impl Solution {
     pub fn maximum_triplet_value(nums: Vec<i32>) -> i64 {
-        let mut res = 0;
-        let n = nums.len();
-
-        let mut suff_max = vec![-1; n];
-
-        suff_max[n - 1] = nums[n - 1];
-        for (idx, &x) in nums.iter().enumerate().rev().skip(1) {
-            suff_max[idx] = suff_max[idx + 1].max(x);
-        }
-
-        let mut pref_max = nums[0];
-
-        for j in 1..n - 1 {
-            res = res.max((pref_max - nums[j]) as i64 * suff_max[j + 1] as i64);
-            pref_max = pref_max.max(nums[j]);
+        let (mut max_val, mut max_sub, mut res) = (0, 0, 0);
+        for num in nums {
+            res = res.max(max_sub as i64 * num as i64);
+            max_sub = max_sub.max(max_val - num);
+            max_val = max_val.max(num);
         }
         return res;
     }
