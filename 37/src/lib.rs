@@ -6,41 +6,17 @@ impl Solution {
             return 3 * (x / 3) + (y / 3);
         }
 
-        fn next(
-            mut row: usize,
-            mut col: usize,
-            board: &mut Vec<Vec<char>>,
-        ) -> Option<(usize, usize)> {
-            loop {
-                if col == N {
-                    row += 1;
-                    col = 0;
-                }
-                if row == N {
-                    return None;
-                }
-                if board[row][col] != '.' {
-                    col += 1;
-                } else {
-                    return Some((row, col));
-                }
-            }
-        }
-
         fn inner(
             board: &mut Vec<Vec<char>>,
-            row: usize,
-            col: usize,
+            empties: &[(usize, usize)],
             row_vals: &mut Vec<Vec<bool>>,
             col_vals: &mut Vec<Vec<bool>>,
             box_vals: &mut Vec<Vec<bool>>,
         ) -> bool {
-            let n = next(row, col, board);
-            if n.is_none() {
+            if empties.len() == 0 {
                 return true;
             }
-
-            let (row, col) = n.unwrap();
+            let (row, col) = empties[0];
             let boxx = get_box_idx(row, col);
 
             for (idx, f) in ('1'..='9').enumerate() {
@@ -52,7 +28,7 @@ impl Solution {
                 col_vals[col][idx] = true;
                 box_vals[boxx][idx] = true;
 
-                if inner(board, row, col, row_vals, col_vals, box_vals) {
+                if inner(board, &empties[1..], row_vals, col_vals, box_vals) {
                     return true;
                 }
 
@@ -70,11 +46,13 @@ impl Solution {
             vec![vec![false; 9]; 9],
             vec![vec![false; 9]; 9],
         );
+        let mut empties = vec![];
 
         // initialise the row/col/box_vals
         for (x, row) in board.iter().enumerate() {
             for (y, &f) in row.iter().enumerate() {
                 if f == '.' {
+                    empties.push((x, y));
                     continue;
                 }
                 let fv = f as usize - ub1;
@@ -85,7 +63,13 @@ impl Solution {
             }
         }
 
-        inner(board, 0, 0, &mut row_vals, &mut col_vals, &mut box_vals);
+        inner(
+            board,
+            empties.as_slice(),
+            &mut row_vals,
+            &mut col_vals,
+            &mut box_vals,
+        );
     }
 }
 
