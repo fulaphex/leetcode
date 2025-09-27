@@ -1,34 +1,19 @@
 impl Solution {
-    fn search(arr: &[i32], x: i32) -> usize {
-        // return the number of elements <= x
-        if arr.len() == 0 {
-            return 0;
-        }
-        if arr.len() == 1 {
-            return if arr[0] <= x { 1 } else { 0 };
-        }
-        let mid = (arr.len() + 1) / 2;
-        if arr[mid] <= x {
-            return mid + Self::search(&arr[mid..], x);
-        } else {
-            return Self::search(&arr[..mid], x);
-        }
-    }
-
     pub fn triangle_number(mut nums: Vec<i32>) -> i32 {
         nums.sort();
         let mut res = 0;
 
-        for idx1 in 0..nums.len() {
+        for (idx1, a) in nums.iter().enumerate() {
+            let mut idx3 = 0;
             for idx2 in idx1 + 1..nums.len() {
-                let (a, b) = (nums[idx1], nums[idx2]);
-                // println!("idx12: {:?}", (idx1, idx2));
-                let limit = a + b - 1;
-                let rest = &nums[idx2 + 1..];
-                let inc = Self::search(rest, limit);
-                // println!("a: {}, b: {}; rest: {:?}", a, b, rest);
-                // println!("inc: {}", inc);
-                res += inc as i32;
+                idx3 = idx3.max(idx2 + 1);
+                let b = nums[idx2];
+
+                while idx3 < nums.len() && nums[idx3] < (a + b) {
+                    idx3 += 1;
+                }
+
+                res += (idx3 - (idx2 + 1)) as i32;
             }
         }
 
@@ -53,6 +38,13 @@ mod tests {
     fn test2() {
         let nums = vec![4, 2, 3, 4];
         let res = 4;
+        assert_eq!(Solution::triangle_number(nums), res);
+    }
+
+    #[test]
+    fn test3() {
+        let nums = vec![0, 0];
+        let res = 0;
         assert_eq!(Solution::triangle_number(nums), res);
     }
 }
