@@ -1,8 +1,7 @@
 impl Solution {
     pub fn maximal_square(matrix: Vec<Vec<char>>) -> i32 {
         let col_count = matrix[0].len();
-        let mut res = 0;
-        let mut dp = vec![vec![0; col_count]; 2];
+        let (mut res, mut dp) = (0, vec![vec![0; col_count]; 2]);
         for (idx, &x) in matrix[0].iter().enumerate() {
             if x == '1' {
                 dp[0][idx] = 1;
