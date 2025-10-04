@@ -1,12 +1,8 @@
 impl Solution {
     pub fn maximum_gap(nums: Vec<i32>) -> i32 {
         let (&min, &max) = (nums.iter().min().unwrap(), nums.iter().max().unwrap());
-        if min == max {
-            return 0;
-        }
-
         let bucket_count = nums.len();
-        let bucket_size = ((max - min) / bucket_count as i32 + 1).max(1);
+        let bucket_size = (max - min) / bucket_count as i32 + 1;
         let (mut bucket_min, mut bucket_max) =
             (vec![i32::MAX; bucket_count], vec![i32::MIN; bucket_count]);
 
@@ -15,6 +11,7 @@ impl Solution {
             bucket_min[bucket] = bucket_min[bucket].min(x);
             bucket_max[bucket] = bucket_max[bucket].max(x);
         }
+
         let find = |bucket_min: &[i32]| -> usize {
             for (idx, &x) in bucket_min.iter().enumerate() {
                 if x != i32::MAX {
