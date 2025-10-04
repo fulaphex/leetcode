@@ -5,12 +5,10 @@ impl Solution {
             return 0;
         }
 
-        let bucket_count = nums.len() as i32;
-        let bucket_size = ((max - min + bucket_count) / bucket_count).max(1);
-        let (mut bucket_min, mut bucket_max) = (
-            vec![i32::MAX; bucket_count as usize],
-            vec![i32::MIN; bucket_count as usize],
-        );
+        let bucket_count = nums.len();
+        let bucket_size = ((max - min) / bucket_count as i32 + 1).max(1);
+        let (mut bucket_min, mut bucket_max) =
+            (vec![i32::MAX; bucket_count], vec![i32::MIN; bucket_count]);
 
         for &x in &nums {
             let bucket = ((x - min) / bucket_size) as usize;
