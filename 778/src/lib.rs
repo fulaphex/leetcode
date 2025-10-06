@@ -1,3 +1,4 @@
+use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 
 impl Solution {
@@ -23,12 +24,11 @@ impl Solution {
         let mut que = BinaryHeap::new();
         let mut visited = vec![vec![false; n]; n];
         visited[0][0] = true;
-        que.push((-grid[0][0], 0, 0));
+        que.push((Reverse(grid[0][0]), 0, 0));
 
         while !que.is_empty() {
-            let (neg_height, row, col) = que.pop().unwrap();
-            let height = -neg_height;
-            res = res.max(height);
+            let (rev_height, row, col) = que.pop().unwrap();
+            res = res.max(rev_height.0);
 
             if row == (n - 1) && col == (n - 1) {
                 return res;
@@ -38,7 +38,7 @@ impl Solution {
                     continue;
                 }
                 visited[nrow][ncol] = true;
-                que.push((-grid[nrow][ncol], nrow, ncol));
+                que.push((Reverse(grid[nrow][ncol]), nrow, ncol));
             }
         }
         unreachable!();
