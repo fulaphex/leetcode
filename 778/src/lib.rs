@@ -41,7 +41,7 @@ impl Solution {
                 que.push((Reverse(grid[nrow][ncol]), nrow, ncol));
             }
         }
-        unreachable!();
+        unreachable!("we can always reach (n-1, n-1) so we should never reach here");
     }
 }
 
