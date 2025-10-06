@@ -15,13 +15,16 @@ impl Solution {
             .map(|(row, col)| (row as usize, col as usize))
             .collect();
     }
+
     pub fn swim_in_water(grid: Vec<Vec<i32>>) -> i32 {
         let n = grid.len();
         let mut res = 0;
+
         let mut que = BinaryHeap::new();
         let mut visited = vec![vec![false; n]; n];
         visited[0][0] = true;
         que.push((-grid[0][0], 0, 0));
+
         while !que.is_empty() {
             let (neg_height, row, col) = que.pop().unwrap();
             let height = -neg_height;
