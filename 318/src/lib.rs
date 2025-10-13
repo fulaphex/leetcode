@@ -1,5 +1,4 @@
 impl Solution {
-    #[inline]
     fn get_word_repr(s: &String) -> u32 {
         let mut arr = vec![false; 26];
         for c in s.chars() {
@@ -14,6 +13,7 @@ impl Solution {
         }
         return x;
     }
+
     pub fn max_product(mut words: Vec<String>) -> i32 {
         words.sort_unstable_by_key(|x| usize::MAX - x.len());
 
@@ -27,7 +27,7 @@ impl Solution {
             if word.len() * word.len() <= res {
                 break;
             }
-            for (idx2, word2) in words.iter().enumerate() {
+            for (idx2, word2) in words.iter().enumerate().skip(idx + 1) {
                 if word_repr[idx] & word_repr[idx2] == 0 {
                     res = res.max(word.len() * word2.len());
                 }
