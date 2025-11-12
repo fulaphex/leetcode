@@ -1,59 +1,40 @@
-use std::collections;
-
-struct Solution {}
-
 impl Solution {
-    pub fn _inner2(
-        strs: &[(i8, i8)],
-        m: i8,
-        n: i8,
-        mem: &mut collections::HashMap<(usize, i8, i8), Option<i8>>,
-    ) -> Option<i8> {
-        if m.min(n) < 0 {
-            return None;
-        }
-        if strs.len() == 0 {
-            return Some(0);
-        }
-        let key = (strs.len(), m, n);
-        if mem.contains_key(&key) {
-            return *mem.get(&key).unwrap();
-        }
-        let (c0, c1) = strs[0];
+    pub fn find_max_form(strs: Vec<String>, m: i32, n: i32) -> i32 {
+        const DEF_VAL: i32 = i32::MIN;
+        let (m, n) = (m as usize, n as usize);
+        let mut dp = vec![vec![DEF_VAL; n + 1]; m + 1];
+        dp[0][0] = 0;
 
-        let mut res = Self::_inner2(&strs[1..], m, n, mem);
-        let mut res1 = Self::_inner2(&strs[1..], m - c0, n - c1, mem);
-        res1 = if res1.is_some() {
-            Some(res1.unwrap() + 1)
-        } else {
-            res1
-        };
-        res = res.max(res1);
-        mem.insert(key, res);
-        return res;
-    }
-    #[inline]
-    pub fn parse_str(s: &String) -> (i8, i8) {
-        let (mut c0, mut c1) = (0, 0);
-        for c in s.chars() {
-            if c == '0' {
-                c0 += 1;
-            } else if c == '1' {
-                c1 += 1;
+        let mut res = 0;
+
+        let mut nonzero_idxs = vec![(0, 0)];
+        let mut new_vals = Vec::with_capacity(n * m);
+
+        for s in strs {
+            let x = s.chars().filter(|&c| c == '0').count();
+            let y = s.len() - x;
+
+            for &(i, j) in &nonzero_idxs {
+                if i + x > m || j + y > n {
+                    continue;
+                }
+                new_vals.push((i + x, j + y, dp[i][j] + 1));
             }
+            for &(i, j, val) in &new_vals {
+                if dp[i][j] == DEF_VAL {
+                    nonzero_idxs.push((i, j));
+                }
+                dp[i][j] = dp[i][j].max(val);
+                res = res.max(dp[i][j]);
+            }
+            new_vals.clear();
         }
-        return (c0, c1);
-    }
-    pub fn find_max_form(mut strs: Vec<String>, m: i32, n: i32) -> i32 {
-        let mut vals = vec![(0, 0); strs.len()];
-        for (idx, s) in strs.iter().enumerate() {
-            vals[idx] = Self::parse_str(s);
-        }
-        vals.sort();
-        let mut mem = collections::HashMap::new();
-        return Self::_inner2(&vals, m as i8, n as i8, &mut mem).unwrap_or(0) as i32;
+
+        res
     }
 }
+
+struct Solution {}
 
 #[cfg(test)]
 mod tests {
