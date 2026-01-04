@@ -1,6 +1,6 @@
 impl Solution {
     pub fn sum_four_divisors(nums: Vec<i32>) -> i32 {
-        let mut sieve = vec![true; 100_010];
+        let mut sieve = vec![false; 100_010];
         // for i in 2..sieve.len() {
         //     let mut j = i * i;
         //     while j < sieve.len() {
@@ -807,7 +807,7 @@ impl Solution {
         }
 
         let mut res = 0;
-        'outer: for n in nums {
+        for n in nums {
             let n = n as i64;
             for &p in &primes {
                 let p = p as i64;
@@ -818,7 +818,7 @@ impl Solution {
 
                 if sieve[d as usize] && d != p && p * d == n {
                     res += (1 + d + p + n);
-                    continue 'outer;
+                    break;
                 }
             }
             let d = (n as f64).cbrt() as i64;
